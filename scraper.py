@@ -24,7 +24,7 @@ LINK_DATE_FMT = "%Y-%m"
 # Date format used for chache entries and saved to CSV.
 # It's automatically parsed by pandas.
 DATE_FMT = "%Y/%m"
-CACHE_PATH = "/data/.span-cache"
+CACHE_PATH = "/data/scrape-dates-cache"
 OUTPUT_FILE = "/data/time_tracking.csv"
 with open("/data/tt_credentials.json") as f:
     LOGIN_CREDENTIALS = json.load(f)
@@ -64,7 +64,7 @@ def _cache_entry_to_span_tuple(cache_entry):
 
 def _span_to_cache_entry(start_date, end_date):
     """Turn start and end date into string to save in the cache file."""
-    return "{0}-{1}".format(start_date.strftime(DATE_FMT), end_date.strftime(DATE_FMT))
+    return "{0}-{1}\n".format(start_date.strftime(DATE_FMT), end_date.strftime(DATE_FMT))
 
 
 def generate_spans(span_cashe, start_date=None, end_date=None):
