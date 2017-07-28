@@ -167,7 +167,7 @@ def scrape_to_csv():
 
         rows_with_date = [[start_date.strftime(DATE_FMT)] + row for row in table_rows]
 
-        with open(OUTPUT_FILE, 'a') as outf:
+        with open(OUTPUT_FILE, 'a', encoding='utf-8') as outf:
             csvfile = csv.writer(outf)
             csvfile.writerows(rows_with_date)
 
