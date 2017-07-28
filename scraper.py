@@ -56,7 +56,7 @@ def instantiate_span_cache():
 
 def _cache_entry_to_span_tuple(cache_entry):
     """Turn cache date span entry into tuple of start and end date."""
-    start, end = line.strip().split('-')
+    start, end = cache_entry.split('-')
     start_date = datetime.strptime(start, DATE_FMT)
     end_date = datetime.strptime(end, DATE_FMT)
     return start_date, end_date
