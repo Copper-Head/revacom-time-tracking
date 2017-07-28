@@ -1,3 +1,4 @@
+"""Provides code to scrape tt.revacom.com and process results into a CSV file."""
 import csv
 import logging
 from datetime import date, datetime
@@ -31,6 +32,7 @@ with open("/data/tt_credentials.json") as f:
 
 
 def cache_file():
+    """Opens file in append or write mode depending on whether it's already present."""
     mode = 'w'
     if os.path.isfile(CACHE_PATH):
         mode = 'a'
@@ -50,8 +52,8 @@ def instantiate_span_cache():
     if not os.path.isfile(CACHE_PATH):
         return set()
 
-    with open(CACHE_PATH) as cache_file:
-        return set(_cache_entry_to_span_tuple(line.strip()) for line in cache_file)
+    with open(CACHE_PATH) as cache_f:
+        return set(_cache_entry_to_span_tuple(line.strip()) for line in cache_f)
 
 
 def _cache_entry_to_span_tuple(cache_entry):
@@ -102,7 +104,7 @@ def request_report(report_link: str, login_payload: dict):
     it makes sense to login separately for each request.
     """
     with requests.Session() as session:
-        authenticate = session.post(LOGIN_URL, data=login_payload)
+        session.post(LOGIN_URL, data=login_payload)
         logging.debug("Done authenticating")
         # wait forever with timeout=None
         return session.get(report_link, timeout=None)
@@ -171,8 +173,8 @@ def scrape_to_csv():
             csvfile = csv.writer(outf)
             csvfile.writerows(rows_with_date)
 
-        with cache_file() as cf:
-            cf.write(_span_to_cache_entry(start_date, end_date))
+        with cache_file() as cache_f:
+            cache_f.write(_span_to_cache_entry(start_date, end_date))
 
 
 if __name__ == '__main__':
