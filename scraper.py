@@ -37,6 +37,14 @@ def cache_file():
     return open(CACHE_PATH, mode)
 
 
+def clear_cache():
+    """Removes cache file if present."""
+    try:
+        os.remove(CACHE_PATH)
+    except OSError:
+        pass
+
+
 def instantiate_span_cache():
     """Read cache file (if present) into memory."""
     if not os.path.isfile(CACHE_PATH):
@@ -151,7 +159,7 @@ def scrape_to_csv():
             csvfile = csv.writer(outfile)
             csvfile.writerow(header_row)
         # We aslo want to reset the cache
-        os.remove(CACHE_PATH)
+        clear_cache()
 
     for start_date, end_date in generate_spans(instantiate_span_cache()):
         table_rows = extract_table(
