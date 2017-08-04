@@ -122,6 +122,11 @@ def extract_table(report_page: requests.Response):
     return []
 
 
+def split_jira_key(table_row):
+    # this is admittedly wonky, to rely on the jira key's position in the row to stay consistent
+    return table_row[:1] + table_row[0].split('-') + table_row[1:]
+
+
 def scrape_to_csv():
     """Main module function.
 
@@ -139,6 +144,8 @@ def scrape_to_csv():
         header_row = [
             'Date',
             'JIRA-Key',
+            'Project',
+            "Package Number",
             'Name',
             'Type',
             'Complexity',
@@ -167,6 +174,7 @@ def scrape_to_csv():
         table_rows = extract_table(
             request_report(span_to_url(start_date, end_date), LOGIN_CREDENTIALS))
 
+        table_rows = map(split_jira_key, table_rows)
         rows_with_date = [[start_date.strftime(DATE_FMT)] + row for row in table_rows]
 
         with open(OUTPUT_FILE, 'a', encoding='utf-8') as outf:
