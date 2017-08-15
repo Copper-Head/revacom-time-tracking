@@ -22,6 +22,7 @@ RUN conda install --quiet \
     beautifulsoup4=4.6.* \
     pandas=0.20.* \
     requests=2.14.* \
+    bokeh=0.12.* \
     matplotlib=2.0* && \
     conda remove --quiet --force qt pyqt && \
     conda clean -tipsy
