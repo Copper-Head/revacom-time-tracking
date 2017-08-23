@@ -1,7 +1,19 @@
 # Revacom Time Tracking
 
 
-## Running
+## Bokeh Server
+
+Build the container first:
+```
+docker build -t tt-bokeh -f app/Dockerfile .
+```
+
+And run it:
+```
+docker run -d -p 80:80 -v /srv/data:/data --name tt-bokeh tt-bokeh --port 80 --allow-websocket-origin=vps441625.ovh.net
+```
+
+## Running Scraper Job
 
 Trying to support both dockerized and non-dockerized setups proved to be trickier than expected,
 so for now this only runs in a docker container.
