@@ -4,6 +4,7 @@ set -e
 
 PORT=80
 VHOST=vps441625.ovh.net
+DATADIR=/srv/data
 
 docker run -d \
     -p $PORT:80 \
@@ -14,6 +15,6 @@ docker run -d \
 docker run -d \
     --expose=$PORT \
     -e VIRTUAL_HOST=$VHOST \
-    -v /home/ubuntu/bokeh/:/bokeh \
+    -v $DATADIR:/data \
     mybokeh \
-    bokeh serve --port $PORT examples/app/sliders.py --allow-websocket-origin $VHOST
+    --port $PORT --allow-websocket-origin $VHOST

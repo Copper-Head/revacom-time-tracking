@@ -9,13 +9,11 @@ RUN conda install --quiet \
     bokeh=0.12.* && \
     conda clean -tipsy
 
-VOLUME bokeh
-WORKDIR bokeh
+VOLUME /data
+COPY ./app /app
 
-# ENV VIRTUAL_HOST vps441625.ovh.net
-# ENV VIRTUAL_PROTO uwsgi
-# EXPOSE 80
+ENTRYPOINT ["bokeh", "serve", "/app"]
 
-# CMD ["bokeh", "serve", "--port", "80", "examples/app/sliders.py"]
-# , "--allow-websocket-origin=vps441625.ovh.net"
+# These are some commands
 # "--port", "80",
+# , "--allow-websocket-origin=$VIRTUAL_HOST"
