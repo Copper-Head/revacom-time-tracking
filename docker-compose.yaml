@@ -1,16 +1,35 @@
 version: '3'
+
+volumes:
+  letsencrypt-certs:
+  nginx-vhostd:
+  nginx-html:
+
 services:
+
   nginx-proxy:
     image: jwilder/nginx-proxy
     container_name: nginx-proxy
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       # needed for letsencrypt
-      # - /path/to/certs:/etc/nginx/certs:ro
-      # - /etc/nginx/vhost.d
-      # - /usr/share/nginx/html
+      - letsencrypt-certs:/etc/nginx/certs:ro
+      - nginx-vhostd:/etc/nginx/vhost.d
+      - nginx-html:/usr/share/nginx/html
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy"
+
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: letsencrypt
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      - letsencrypt-certs:/etc/nginx/certs:rw
+      - nginx-vhostd:/etc/nginx/vhost.d
+      - nginx-html:/usr/share/nginx/html
 
   tt-bokeh:
     image: tt-bokeh
