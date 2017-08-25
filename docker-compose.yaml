@@ -39,6 +39,8 @@ services:
       dockerfile: app/Dockerfile
     environment:
       - VIRTUAL_HOST=vps441625.ovh.net
+      - LETSENCRYPT_HOST=vps441625.ovh.net
+      - LETSENCRYPT_EMAIL=kurenkov@uni-potsdam.de
     expose:
       - "80"
     volumes:
