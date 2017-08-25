@@ -1,0 +1,25 @@
+version: '3'
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+    volumes:
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+      # needed for letsencrypt
+      # - /path/to/certs:/etc/nginx/certs:ro
+      # - /etc/nginx/vhost.d
+      # - /usr/share/nginx/html
+
+  tt-bokeh:
+    image: tt-bokeh
+    container_name: tt-bokeh
+    build:
+      context: .
+      dockerfile: app/Dockerfile
+    environment:
+      - VIRTUAL_HOST=vps441625.ovh.net
+    volumes:
+      - /srv/data:/data:ro
+    command: "--port 80 --allow-websocket-origin=vps441625.ovh.net"
