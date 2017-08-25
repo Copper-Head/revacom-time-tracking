@@ -38,12 +38,14 @@ def pkg_profit(pkg_price, pkg_hours, wage):
 
 
 p = figure(
-        x_axis_type="datetime",
-        # plot_height=height,
-        # plot_width=width,
-        active_scroll='wheel_zoom',
-        title="Package Stats",
-        title_location='above')
+    x_axis_type="datetime",
+    # plot_height=height,
+    # plot_width=width,
+    active_scroll='wheel_zoom',
+    title="Package Stats",
+    x_axis_label='Time',
+    y_axis_label='Profits (EUR)',
+    title_location='above')
 
 default_data = tt_data[tt_data['Complexity'] == "Basic"]
 xs = default_data.index.values
@@ -55,10 +57,10 @@ source = ColumnDataSource(
 
 p.scatter('x', 'y', name='datapoints', source=source, legend="Total Time")
 
+# yapf:disable
 p.line(
     xs,
-    tt.rolling(
-        100, min_periods=1).mean(),
+    tt.rolling(100, min_periods=1).mean(),
     line_width=3,
     color='black',
     name='rolling-mean',
@@ -79,9 +81,9 @@ p.line(
     name='planned',
     legend='Planned Profit',
     line_width=2)
+# yapf:enable
 
 p.add_tools(HoverTool(tooltips=[("Project", "@proj"), ('Package Number', '@pkg_id')]))
-
 
 # Bokeh page
 
