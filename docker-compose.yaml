@@ -20,6 +20,8 @@ services:
       dockerfile: app/Dockerfile
     environment:
       - VIRTUAL_HOST=vps441625.ovh.net
+    expose:
+      - "80"
     volumes:
       - /srv/data:/data:ro
     command: "--port 80 --allow-websocket-origin=vps441625.ovh.net"
