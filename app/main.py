@@ -17,6 +17,15 @@ tt_data = tt_data.sort_index(0)
 # To make life easier later, store column name for total packaging time as a constant
 TOTAL_TIME = 'Total Time (1)'
 
+# This is all static for now until we get access to the actual data
+# The prices came from Mathias
+package_prices = {"Basic": 100, "Easy": 180, "Medium": 360, "Complex": 680}
+
+planned_times = {"Basic": 2, "Easy": 4, "Medium": 8, "Complex": 16}
+
+# Also static for now, pending us figuring something nicer out later
+HOURLY_WAGE = 18
+
 
 # Defining the plot
 def _hline(y_value, x_values):
@@ -24,11 +33,8 @@ def _hline(y_value, x_values):
     return np.repeat(y_value, len(x_values))
 
 
-# This is all static for now until we get access to the actual data
-# The prices came from Mathias
-package_prices = {"Basic": 100, "Easy": 180, "Medium": 360, "Complex": 680}
-
-planned_times = {"Basic": 2, "Easy": 4, "Medium": 8, "Complex": 16}
+def pkg_profit(pkg_price, pkg_hours, wage):
+    return pkg_price - pkg_hours * wage
 
 
 p = figure(
@@ -39,10 +45,13 @@ p = figure(
         title="Package Stats",
         title_location='above')
 
-xs = tt_data.index.values
-tt = tt_data[TOTAL_TIME]
+default_data = tt_data[tt_data['Complexity'] == "Basic"]
+xs = default_data.index.values
+tt = pkg_profit(package_prices["Basic"], default_data[TOTAL_TIME], HOURLY_WAGE)
 
-source = ColumnDataSource(dict(x=xs, y=tt, proj=tt_data['Project'], pkg_id=tt_data['Package Number']))
+source = ColumnDataSource(
+    dict(
+        x=xs, y=tt, proj=default_data['Project'], pkg_id=default_data['Package Number']))
 
 p.scatter('x', 'y', name='datapoints', source=source, legend="Total Time")
 
@@ -63,10 +72,12 @@ p.line(
     line_width=2)
 p.line(
     xs,
-    _hline(0, xs),
+    _hline(
+        pkg_profit(package_prices['Basic'], planned_times['Basic'], HOURLY_WAGE),
+        xs),
     line_color='green',
     name='planned',
-    legend='Planned Cost',
+    legend='Planned Profit',
     line_width=2)
 
 p.add_tools(HoverTool(tooltips=[("Project", "@proj"), ('Package Number', '@pkg_id')]))
@@ -88,7 +99,8 @@ def update(plot):
 
     this_complexity = tt_data[pkg_filter]
     new_x = this_complexity.index.values
-    new_tt = this_complexity[TOTAL_TIME]
+    new_tt = pkg_profit(package_prices[complexity_type.value], this_complexity[TOTAL_TIME],
+                        HOURLY_WAGE)
 
     plot.select_one("datapoints").data_source.data = {
         'x': new_x,
@@ -103,7 +115,9 @@ def update(plot):
     }
     plot.select_one('planned').data_source.data = {
         "x": new_x,
-        "y": _hline(planned_times[complexity_type.value], new_x)
+        "y": _hline(
+            pkg_profit(package_prices[complexity_type.value], planned_times[complexity_type.value],
+                       18), new_x)
     }
     plot.select_one("mean").data_source.data = {"x": new_x, "y": _hline(new_tt.mean(), new_x)}
 
