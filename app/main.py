@@ -43,6 +43,7 @@ def pkg_profit(pkg_price, pkg_hours, wage):
 tt_data['y'] = pkg_profit(tt_data["Price"], tt_data[TOTAL_TIME], HOURLY_WAGE)
 
 planned_times = {"Basic": 2, "Easy": 4, "Medium": 8, "Complex": 16}
+tt_data['planned_y'] = pkg_profit(tt_data['Price'], tt_data['Complexity'].apply(lambda cpl: planned_times[cpl]), HOURLY_WAGE)
 
 
 # Defining the plot
@@ -88,9 +89,7 @@ p.line(
     line_width=2)
 p.line(
     xs,
-    _hline(
-        pkg_profit(package_prices['Basic'], planned_times['Basic'], HOURLY_WAGE),
-        xs),
+    default_data['planned_y'],
     line_color='green',
     name='planned',
     legend='Planned Profit',
@@ -123,13 +122,9 @@ def update(plot, complexity_type, project, rolling_window):
     new_tt = this_complexity['y']
 
     plot.select_one("datapoints").data_source.data = ColumnDataSource.from_df(this_complexity)
-    _update_line(plot, "planned", new_x,
-                 _hline(
-                     pkg_profit(package_prices[complexity_type], planned_times[complexity_type],
-                                18), new_x))
+    _update_line(plot, "planned", new_x, this_complexity['planned_y'])
     # These have to be recomputed every time
     _update_mean(plot, new_x, new_tt)
-    # plot.select_one("mean").data_source.data = {"x": new_x, "y": _hline(new_tt.mean(), new_x)}
     _update_rolling_window(plot, new_x, new_tt, rolling_window)
 
 
