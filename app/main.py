@@ -26,25 +26,29 @@ tt_data = tt_data.sort_values('Date')
 TOTAL_TIME = 'Total Time (1)'
 # Only use subset of columns
 tt_data = tt_data[['Date', 'Project', 'Package Number', 'Complexity', TOTAL_TIME]]
+tt_data = tt_data.rename(columns={'Date': 'x', 'Package Number': 'Pkg_ID'})
 
 # This is all static for now until we get access to the actual data
 # The prices came from Mathias
 package_prices = {"Basic": 100, "Easy": 180, "Medium": 360, "Complex": 680}
-
-planned_times = {"Basic": 2, "Easy": 4, "Medium": 8, "Complex": 16}
-
+tt_data['Price'] = tt_data['Complexity'].apply(lambda cpl: package_prices[cpl])
 # Also static for now, pending us figuring something nicer out later
 HOURLY_WAGE = 18
+
+
+def pkg_profit(pkg_price, pkg_hours, wage):
+    return pkg_price - pkg_hours * wage
+
+
+tt_data['y'] = pkg_profit(tt_data["Price"], tt_data[TOTAL_TIME], HOURLY_WAGE)
+
+planned_times = {"Basic": 2, "Easy": 4, "Medium": 8, "Complex": 16}
 
 
 # Defining the plot
 def _hline(y_value, x_values):
     """Generates a horizontal line by repeating y_value."""
     return np.repeat(y_value, len(x_values))
-
-
-def pkg_profit(pkg_price, pkg_hours, wage):
-    return pkg_price - pkg_hours * wage
 
 
 p = figure(
@@ -57,13 +61,13 @@ p = figure(
     y_axis_label='Profits (EUR)',
     title_location='above')
 
-default_data = tt_data[tt_data['Complexity'] == "Basic"]
-xs = default_data['Date']
-tt = pkg_profit(package_prices["Basic"], default_data[TOTAL_TIME], HOURLY_WAGE)
+p.add_tools(HoverTool(tooltips=[("Project", "@Project"), ('Package Number', '@Pkg_ID')]))
 
-source = ColumnDataSource(
-    dict(
-        x=xs, y=tt, proj=default_data['Project'], pkg_id=default_data['Package Number']))
+default_data = tt_data[tt_data['Complexity'] == "Basic"]
+xs = default_data['x']
+tt = default_data['y']
+
+source = ColumnDataSource.from_df(default_data)
 
 p.scatter('x', 'y', name='datapoints', source=source, legend="Total Time")
 
@@ -93,7 +97,6 @@ p.line(
     line_width=2)
 # yapf:enable
 
-p.add_tools(HoverTool(tooltips=[("Project", "@proj"), ('Package Number', '@pkg_id')]))
 
 # Bokeh page
 
@@ -116,15 +119,10 @@ def update(plot, complexity_type, project, rolling_window):
         pkg_filter = pkg_filter & (tt_data['Project'] == project)
 
     this_complexity = tt_data[pkg_filter]
-    new_x = this_complexity['Date']
-    new_tt = pkg_profit(package_prices[complexity_type], this_complexity[TOTAL_TIME], HOURLY_WAGE)
+    new_x = this_complexity['x']
+    new_tt = this_complexity['y']
 
-    plot.select_one("datapoints").data_source.data = {
-        'x': new_x,
-        'y': new_tt,
-        'proj': this_complexity['Project'],
-        'pkg_id': this_complexity['Package Number']
-    }
+    plot.select_one("datapoints").data_source.data = ColumnDataSource.from_df(this_complexity)
     _update_line(plot, "planned", new_x,
                  _hline(
                      pkg_profit(package_prices[complexity_type], planned_times[complexity_type],
