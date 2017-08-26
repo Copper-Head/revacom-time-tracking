@@ -13,13 +13,19 @@ from bokeh.io import curdoc
 # TODO: where do we get data from?
 tt_data = pd.read_csv('/data/time_tracking.csv', parse_dates=[0])
 # There are about 3,5K (~10% of overall data) entries which we can't use
-tt_data = tt_data[tt_data['Complexity'] != 'NotSpecified']
+# Also there are 1364 entries where the complexity field is null
+tt_data_filter = ((tt_data['Complexity'] != 'NotSpecified')
+                  & (tt_data['Complexity'] != 'Special')
+                  & (~(tt_data['Complexity'].isnull())))
+tt_data = tt_data[tt_data_filter]
 # For now drop duplicates. Would be nice to investigate where these are coming from
 tt_data = tt_data.drop_duplicates()
 # sort everything by date
 tt_data = tt_data.sort_values('Date')
 # To make life easier later, store column name for total packaging time as a constant
 TOTAL_TIME = 'Total Time (1)'
+# Only use subset of columns
+tt_data = tt_data[['Date', 'Project', 'Package Number', 'Complexity', TOTAL_TIME]]
 
 # This is all static for now until we get access to the actual data
 # The prices came from Mathias
