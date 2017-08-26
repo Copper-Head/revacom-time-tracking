@@ -11,13 +11,13 @@ from bokeh.io import curdoc
 
 # Loading the data
 # TODO: where do we get data from?
-tt_data = pd.read_csv('/data/time_tracking.csv', parse_dates=[0], index_col=[0])
+tt_data = pd.read_csv('/data/time_tracking.csv', parse_dates=[0])
 # There are about 3,5K (~10% of overall data) entries which we can't use
 tt_data = tt_data[tt_data['Complexity'] != 'NotSpecified']
 # For now drop duplicates. Would be nice to investigate where these are coming from
 tt_data = tt_data.drop_duplicates()
 # sort everything by date
-tt_data = tt_data.sort_index(0)
+tt_data = tt_data.sort_values('Date')
 # To make life easier later, store column name for total packaging time as a constant
 TOTAL_TIME = 'Total Time (1)'
 
@@ -52,7 +52,7 @@ p = figure(
     title_location='above')
 
 default_data = tt_data[tt_data['Complexity'] == "Basic"]
-xs = default_data.index.values
+xs = default_data['Date']
 tt = pkg_profit(package_prices["Basic"], default_data[TOTAL_TIME], HOURLY_WAGE)
 
 source = ColumnDataSource(
@@ -110,7 +110,7 @@ def update(plot, complexity_type, project, rolling_window):
         pkg_filter = pkg_filter & (tt_data['Project'] == project)
 
     this_complexity = tt_data[pkg_filter]
-    new_x = this_complexity.index.values
+    new_x = this_complexity['Date']
     new_tt = pkg_profit(package_prices[complexity_type], this_complexity[TOTAL_TIME], HOURLY_WAGE)
 
     plot.select_one("datapoints").data_source.data = {
