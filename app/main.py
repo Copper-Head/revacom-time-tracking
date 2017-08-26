@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 import pandas as pd
 import numpy as np
 
@@ -87,22 +89,27 @@ p.add_tools(HoverTool(tooltips=[("Project", "@proj"), ('Package Number', '@pkg_i
 
 # Bokeh page
 
-complexity_type = Select(
-    title='Package Complexity', value="Basic", options=["Basic", "Easy", "Medium", "Complex"])
-project = Select(
-    title='Project ID', value="All", options=['All'] + list(tt_data['Project'].unique()))
-rolling_window = Slider(title='Rolling Mean Window', start=5, end=500, value=100, step=1)
+
+def _update_line(plot, line_name, new_x, new_y):
+    plot.select_one(line_name).data_source.data = {'x': new_x, "y": new_y}
 
 
-def update(plot):
-    pkg_filter = (tt_data['Complexity'] == complexity_type.value)
-    if project.value is not 'All':
-        pkg_filter = pkg_filter & (tt_data['Project'] == project.value)
+def _update_rolling_window(plot, new_x, new_tt, rolling_window):
+    _update_line(plot, "rolling-mean", new_x, new_tt.rolling(rolling_window, min_periods=1).mean())
+
+
+def _update_mean(plot, new_x, new_y):
+    _update_line(plot, "mean", new_x, _hline(new_y.mean(), new_x))
+
+
+def update(plot, complexity_type, project, rolling_window):
+    pkg_filter = (tt_data['Complexity'] == complexity_type)
+    if project is not 'All':
+        pkg_filter = pkg_filter & (tt_data['Project'] == project)
 
     this_complexity = tt_data[pkg_filter]
     new_x = this_complexity.index.values
-    new_tt = pkg_profit(package_prices[complexity_type.value], this_complexity[TOTAL_TIME],
-                        HOURLY_WAGE)
+    new_tt = pkg_profit(package_prices[complexity_type], this_complexity[TOTAL_TIME], HOURLY_WAGE)
 
     plot.select_one("datapoints").data_source.data = {
         'x': new_x,
@@ -110,28 +117,31 @@ def update(plot):
         'proj': this_complexity['Project'],
         'pkg_id': this_complexity['Package Number']
     }
-    plot.select_one("rolling-mean").data_source.data = {
-        'x': new_x,
-        "y": new_tt.rolling(
-            rolling_window.value, min_periods=1).mean()
-    }
-    plot.select_one('planned').data_source.data = {
-        "x": new_x,
-        "y": _hline(
-            pkg_profit(package_prices[complexity_type.value], planned_times[complexity_type.value],
-                       18), new_x)
-    }
-    plot.select_one("mean").data_source.data = {"x": new_x, "y": _hline(new_tt.mean(), new_x)}
+    _update_line(plot, "planned", new_x,
+                 _hline(
+                     pkg_profit(package_prices[complexity_type], planned_times[complexity_type],
+                                18), new_x))
+    # These have to be recomputed every time
+    _update_mean(plot, new_x, new_tt)
+    # plot.select_one("mean").data_source.data = {"x": new_x, "y": _hline(new_tt.mean(), new_x)}
+    _update_rolling_window(plot, new_x, new_tt, rolling_window)
 
 
-controls = [complexity_type, project, rolling_window]
-for control in controls:
-    control.on_change('value', lambda attr, old, new: update(p))
+Controls = namedtuple("Controls", "complexity_type project rolling_window")
+controls = Controls(
+    complexity_type=Select(
+        title='Package Complexity', value="Basic", options=["Basic", "Easy", "Medium", "Complex"]),
+    project=Select(
+        title='Project ID', value="All", options=['All'] + list(tt_data['Project'].unique())),
+    rolling_window=Slider(
+        title='Rolling Mean Window', start=5, end=500, value=100, step=1))
 
-sizing_mode = 'fixed'  # try 'scale_width' sometime?
+for name, control in controls._asdict().items():
+    control.on_change('value', lambda attr, old, new: update(p, * [c.value for c in controls]))
 
+sizing_mode = 'fixed'
 inputs = widgetbox(*controls, sizing_mode=sizing_mode)
-l = layout([[inputs, p]], sizing_mode=sizing_mode)
 
+l = layout([[inputs, p]], sizing_mode=sizing_mode)
 curdoc().add_root(l)
 curdoc().title = "Package stats"
