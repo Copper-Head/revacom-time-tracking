@@ -13,8 +13,7 @@ def generate_plot(data):
     """Create bokeh figure from some initial data."""
     plot = figure(
         x_axis_type="datetime",
-        # plot_height=height,
-        # plot_width=width,
+        plot_width=900,
         active_scroll='wheel_zoom',
         title="Package Stats",
         x_axis_label='Time',
