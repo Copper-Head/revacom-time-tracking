@@ -7,8 +7,10 @@ from bokeh.io import curdoc
 from ttplotter import generate_plot, update
 from datawrangler import load_timetracking_data
 
+DEFAULT_COMPLEXITY = "Basic"
+
 tt_data = load_timetracking_data('/data/time_tracking.csv')
-default_data = tt_data[tt_data['Complexity'] == "Basic"]
+default_data = tt_data[tt_data['Complexity'] == DEFAULT_COMPLEXITY]
 p = generate_plot(default_data)
 
 # Bokeh page
@@ -16,7 +18,7 @@ p = generate_plot(default_data)
 Controls = namedtuple("Controls", "complexity_type project rolling_window")
 controls = Controls(
     complexity_type=Select(
-        title='Package Complexity', value="Basic", options=["Basic", "Easy", "Medium", "Complex"]),
+        title='Package Complexity', value=DEFAULT_COMPLEXITY, options=["Basic", "Easy", "Medium", "Complex"]),
     project=Select(
         title='Project ID', value="All", options=['All'] + list(tt_data['Project'].unique())),
     rolling_window=Slider(
