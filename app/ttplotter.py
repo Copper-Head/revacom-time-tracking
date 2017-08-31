@@ -53,6 +53,7 @@ def generate_plot(data):
         legend='Planned Profit',
         line_width=2)
     # yapf:enable
+    plot.legend.click_policy="hide"
     return plot
 
 
