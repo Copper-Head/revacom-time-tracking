@@ -14,13 +14,16 @@ This displays the monthly stats for packages.
 
 For the first time, deploy with this command:
 ```
-docker-compose up -d --build
+docker-compose up -d
 ```
+Note that this will rebuild the image for our bokeh container and pull the images for nginx-proxy and letsencrypt.
+
 When re-deploying, use this command:
 ```
 docker-compose up -d --force-recreate --build
 ```
-You can leave out the `--build` flag if you didn't make any changes to the server code and are just re-deploying a new configuration.
+You can leave out the `--build` flag if you didn't make any changes to the server code and are just deploying a new docker container configuration.
+You can edit this configuration by simply changing the `docker-compose.yaml` file.
 
 ## Running Scraper Job
 
@@ -36,7 +39,7 @@ When you run the container you need to mount two volumes:
 - one in `/project` containing `TimeSheetData.ipynb` and `scraper.py` (the easiest is to just mount this repository)
 - one under `/data/` where the output will be saved
 
-Here's an example run command assuming there is a `/data` directory on the host.
+Here's an example run command assuming there is an `/srv/data` directory on the host.
 ```
-docker run -v /data:/data/ /project:$PWD time-tracking-scraper
+docker run -v /srv/data:/data/ /project:$PWD time-tracking-scraper
 ```
