@@ -1,4 +1,4 @@
-FROM continuumio/miniconda
+FROM continuumio/miniconda3
 
 RUN conda config --set always_yes True && \
     conda config --system --append channels conda-forge && \
