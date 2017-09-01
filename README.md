@@ -25,15 +25,15 @@ docker-compose up -d --force-recreate --build
 You can leave out the `--build` flag if you didn't make any changes to the server code and are just deploying a new docker container configuration.
 You can edit this configuration by simply changing the `docker-compose.yaml` file.
 
-## Running Scraper Job
+### Assumptions
+When generating the plots we made some assumptions about our data. You can find (and tweak) all of them in `app/assumptions.py`
 
+## Running Scraper Job
 Trying to support both dockerized and non-dockerized setups proved to be trickier than expected,
 so for now this only runs in a docker container.
-
 ```
 docker build . -t time-tracking-scraper
 ```
-
 When you run the container you need to mount two volumes:
 
 - one in `/project` containing `TimeSheetData.ipynb` and `scraper.py` (the easiest is to just mount this repository)
