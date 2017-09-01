@@ -27,6 +27,7 @@ def _date_from_js(timestamp: int):
     else:
         return timestamp
 
+
 def generate_plot(data):
     """Create bokeh figure from some initial data."""
     plot = figure(
