@@ -3,7 +3,7 @@ from collections import namedtuple
 
 import pandas as pd
 
-from assumptions import HOURLY_WAGE, PKG_PRICES
+from assumptions import HOURLY_WAGE, PKG_PRICES, PLANNED_HOURS
 
 DateRange = namedtuple("DateRange", "start end")
 
@@ -34,10 +34,9 @@ def load_timetracking_data(path):
 
     tt_data['y'] = pkg_profit(tt_data["Price"], tt_data[TOTAL_TIME], HOURLY_WAGE.value)
 
-    planned_times = {"Basic": 2, "Easy": 4, "Medium": 8, "Complex": 16}
-    tt_data['planned_y'] = pkg_profit(tt_data['Price'],
-                                      tt_data['Complexity'].apply(lambda cpl: planned_times[cpl]),
-                                      HOURLY_WAGE.value)
+    tt_data['planned_y'] = pkg_profit(
+        tt_data['Price'], tt_data['Complexity'].apply(lambda cpl: PLANNED_HOURS.value[cpl]),
+        HOURLY_WAGE.value)
     return tt_data
 
 
