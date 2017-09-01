@@ -3,7 +3,7 @@ from collections import namedtuple
 
 import pandas as pd
 
-from assumptions import HOURLY_WAGE
+from assumptions import HOURLY_WAGE, PKG_PRICES
 
 DateRange = namedtuple("DateRange", "start end")
 
@@ -27,12 +27,10 @@ def load_timetracking_data(path):
     tt_data = tt_data.drop_duplicates()
     tt_data = tt_data.sort_values('Date')
     tt_data = tt_data[RELEVANT_COLUMNS]
+    # Rename some columns for easier plotting
     tt_data = tt_data.rename(columns={'Date': 'x', 'Package Number': 'Pkg_ID'})
 
-    # This is all static for now until we get access to the actual data
-    # The prices came from Mathias
-    package_prices = {"Basic": 100, "Easy": 180, "Medium": 360, "Complex": 680}
-    tt_data['Price'] = tt_data['Complexity'].apply(lambda cpl: package_prices[cpl])
+    tt_data['Price'] = tt_data['Complexity'].apply(lambda cpl: PKG_PRICES.value[cpl])
 
     tt_data['y'] = pkg_profit(tt_data["Price"], tt_data[TOTAL_TIME], HOURLY_WAGE.value)
 
