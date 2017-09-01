@@ -6,10 +6,12 @@ from dateranger import DateRange
 
 TOTAL_TIME = 'Total Time (1)'
 RELEVANT_COLUMNS = ['Date', 'Project', 'Package Number', 'Complexity', TOTAL_TIME]
+COST_COL = 'Costs'
+PROFIT_COL = 'Profits'
 
 
-def pkg_profit(pkg_price, pkg_hours, wage):
-    return pkg_price - pkg_hours * wage
+def planned_col_name(metric_name):
+    return "Planned{}".format(metric_name)
 
 
 def load_timetracking_data(path):
@@ -24,12 +26,14 @@ def load_timetracking_data(path):
     tt_data = tt_data.rename(columns={'Date': 'x', 'Package Number': 'Pkg_ID'})
 
     tt_data['Price'] = tt_data['Complexity'].apply(lambda cpl: PKG_PRICES.value[cpl])
+    tt_data['PlannedTime'] = tt_data['Complexity'].apply(lambda cpl: PLANNED_HOURS.value[cpl])
 
-    tt_data['y'] = pkg_profit(tt_data["Price"], tt_data[TOTAL_TIME], HOURLY_WAGE.value)
+    tt_data[COST_COL] = tt_data[TOTAL_TIME] * HOURLY_WAGE.value
+    planned_cost_col = planned_col_name(COST_COL)
+    tt_data[planned_cost_col] = tt_data['PlannedTime'] * HOURLY_WAGE.value
+    tt_data[PROFIT_COL] = tt_data['Price'] - tt_data[COST_COL]
+    tt_data[planned_col_name(PROFIT_COL)] = tt_data['Price'] - tt_data[planned_cost_col]
 
-    tt_data['planned_y'] = pkg_profit(
-        tt_data['Price'], tt_data['Complexity'].apply(lambda cpl: PLANNED_HOURS.value[cpl]),
-        HOURLY_WAGE.value)
     return tt_data
 
 

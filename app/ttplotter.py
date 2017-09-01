@@ -3,7 +3,7 @@ import numpy as np
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource, HoverTool
 
-from datawrangler import tt_subset
+from datawrangler import tt_subset, planned_col_name
 from dateranger import date_range_from_js
 
 
@@ -12,25 +12,27 @@ def _hline(y_value, x_values):
     return np.repeat(y_value, len(x_values))
 
 
-def generate_plot(data):
+def generate_plot(data, metric_name):
     """Create bokeh figure from some initial data."""
+    Metric_Name = metric_name.title()
     plot = figure(
         x_axis_type="datetime",
         plot_width=900,
         active_scroll='wheel_zoom',
-        title="Package Stats",
+        title="Package {}".format(Metric_Name),
         x_axis_label='Time',
-        y_axis_label='Profits (EUR)',
-        title_location='above')
+        y_axis_label='{} (EUR)'.format(Metric_Name),
+        title_location='above',
+        name=metric_name)
 
     plot.add_tools(HoverTool(tooltips=[("Project", "@Project"), ('Package Number', '@Pkg_ID')]))
 
+    data = data.rename(columns={metric_name: 'y'})
     xs = data['x']
     tt = data['y']
 
-    source = ColumnDataSource.from_df(data)
-
-    plot.scatter('x', 'y', name='datapoints', source=source, legend="Total Time")
+    plot.scatter(
+        'x', 'y', name='datapoints', source=ColumnDataSource.from_df(data), legend=Metric_Name)
 
     # yapf:disable
     plot.line(
@@ -49,10 +51,10 @@ def generate_plot(data):
         line_width=2)
     plot.line(
         xs,
-        data['planned_y'],
+        data[planned_col_name(metric_name)],
         line_color='green',
         name='planned',
-        legend='Planned Profit',
+        legend='Planned {}'.format(Metric_Name),
         line_width=2)
     # yapf:enable
     plot.legend.click_policy = "hide"
@@ -80,11 +82,12 @@ def update(plot, tt_data, date_range, complexity_type, project, rolling_window):
     if project is not 'All':
         pkg_filter = pkg_filter & (tt_data['Project'] == project)
 
-    this_complexity = tt_data[pkg_filter]
+    metric_name = plot.name
+    this_complexity = tt_data[pkg_filter].rename(columns={metric_name: 'y'})
     new_x = this_complexity['x']
     new_tt = this_complexity['y']
 
     plot.select_one("datapoints").data_source.data = ColumnDataSource.from_df(this_complexity)
-    _update_line(plot, "planned", new_x, this_complexity['planned_y'])
+    _update_line(plot, "planned", new_x, this_complexity[planned_col_name(metric_name)])
     _update_mean(plot, new_x, new_tt)
     _update_rolling_window(plot, new_x, new_tt, rolling_window)
