@@ -1,11 +1,8 @@
 """Handles data readin and preprocessing."""
-from collections import namedtuple
-
 import pandas as pd
 
 from assumptions import HOURLY_WAGE, PKG_PRICES, PLANNED_HOURS, COMPLEXITY_TYPES
-
-DateRange = namedtuple("DateRange", "start end")
+from dateranger import DateRange
 
 TOTAL_TIME = 'Total Time (1)'
 RELEVANT_COLUMNS = ['Date', 'Project', 'Package Number', 'Complexity', TOTAL_TIME]
@@ -36,7 +33,7 @@ def load_timetracking_data(path):
     return tt_data
 
 
-def tt_subset(data: pd.DataFrame, complexity_type: str, date_range: tuple):
+def tt_subset(data: pd.DataFrame, complexity_type: str, date_range: DateRange):
     """Most used filter to subset data."""
     return ((data['Complexity'] == complexity_type) & (data['x'] > date_range.start) &
             (data['x'] < date_range.end))

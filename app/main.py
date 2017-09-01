@@ -6,35 +6,11 @@ from bokeh.models.widgets import Slider, Select, DateRangeSlider
 from bokeh.io import curdoc
 
 from ttplotter import generate_plot, update
-from datawrangler import load_timetracking_data, tt_subset, DateRange
+from datawrangler import load_timetracking_data, tt_subset
 from assumptions import COMPLEXITY_TYPES
+from dateranger import date_range_from_request
 
 DEFAULT_COMPLEXITY = "Basic"
-DATE_FORMAT = "%d/%m/%Y"
-
-
-def _convert(date: str, default: datetime.date) -> datetime.date:
-    try:
-        return datetime.strptime(date, DATE_FORMAT).date()
-    except ValueError:
-        return default
-
-
-def _extract(request_arguments: dict, arg_name: str) -> str:
-    value = request_arguments.get(arg_name, [])
-    return value[0].decode() if value else ""
-
-
-def _extract_start_end(request_arguments: dict) -> tuple:
-    return _extract(request_arguments, "start"), _extract(request_arguments, "end")
-
-
-def date_range_from_request(default_start, default_end) -> tuple:
-    """Infer date range selection from request."""
-    request_args = curdoc().session_context.request.arguments
-    start, end = _extract_start_end(request_args)
-    return DateRange(_convert(start, default_start), _convert(end, default_end))
-
 
 tt_data = load_timetracking_data('/data/time_tracking.csv')
 date_range = date_range_from_request(tt_data['x'].min(), tt_data['x'].max())
