@@ -1,36 +1,71 @@
 from collections import namedtuple
+from datetime import datetime
 
 from bokeh.layouts import layout, widgetbox
-from bokeh.models.widgets import Slider, Select
+from bokeh.models.widgets import Slider, Select, DateRangeSlider
 from bokeh.io import curdoc
 
 from ttplotter import generate_plot, update
 from datawrangler import load_timetracking_data
 
 DEFAULT_COMPLEXITY = "Basic"
+DATE_FORMAT = "%d/%m/%Y"
 
 tt_data = load_timetracking_data('/data/time_tracking.csv')
 default_data = tt_data[tt_data['Complexity'] == DEFAULT_COMPLEXITY]
 p = generate_plot(default_data)
 
+
+def _convert(date: str, default: datetime.date) -> datetime.date:
+    try:
+        return datetime.strptime(date, DATE_FORMAT).date()
+    except ValueError:
+        return default
+
+
+def _extract(request_arguments: dict, arg_name: str) -> str:
+    return request_arguments.get(arg_name, [])[0].decode()
+
+
+def _extract_start_end(request_arguments: dict) -> tuple:
+    return _extract(request_arguments, "start"), _extract(request_arguments, "end")
+
+
+def date_range_from_request() -> tuple:
+    """Infer date range selection from request."""
+    request_args = curdoc().session_context.request.arguments
+    start, end = _extract_start_end(request_args)
+    return _convert(start, tt_data['x'].min()), _convert(end, tt_data['x'].max())
+
+
 # Bokeh page
 
-Controls = namedtuple("Controls", "complexity_type project rolling_window")
+Controls = namedtuple("Controls", "date complexity_type project rolling_window")
 controls = Controls(
+    date=DateRangeSlider(
+        title='Dates',
+        start=tt_data['x'].min(),
+        end=tt_data['x'].max(),
+        value=date_range_from_request(),
+        name='date-ranger'),
     complexity_type=Select(
-        title='Package Complexity', value=DEFAULT_COMPLEXITY, options=["Basic", "Easy", "Medium", "Complex"]),
+        title='Package Complexity',
+        value=DEFAULT_COMPLEXITY,
+        options=["Basic", "Easy", "Medium", "Complex"]),
     project=Select(
         title='Project ID', value="All", options=['All'] + list(tt_data['Project'].unique())),
-    rolling_window=Slider(
-        title='Rolling Mean Window', start=5, end=500, value=100, step=1))
+    rolling_window=Slider(title='Rolling Mean Window', start=5, end=500, value=100, step=1))
 
 for name, control in controls._asdict().items():
     control.on_change('value',
                       lambda attr, old, new: update(p, tt_data, * [c.value for c in controls]))
 
 sizing_mode = 'fixed'
-inputs = widgetbox(*controls, sizing_mode=sizing_mode)
+inputs = widgetbox(*controls, sizing_mode="stretch_both")
 
-l = layout([[inputs, p]], sizing_mode=sizing_mode)
+l = layout(
+    [[inputs, p]],
+    # sizing_mode="stretch_both"
+)
 curdoc().add_root(l)
 curdoc().title = "Package stats"

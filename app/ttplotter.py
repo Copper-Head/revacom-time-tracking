@@ -71,7 +71,7 @@ def _update_mean(plot, new_x, new_y):
     _update_line(plot, "mean", new_x, _hline(new_y.mean(), new_x))
 
 
-def update(plot, tt_data, complexity_type, project, rolling_window):
+def update(plot, tt_data, date_range, complexity_type, project, rolling_window):
     """Updates a plot from global tt_data."""
     pkg_filter = (tt_data['Complexity'] == complexity_type)
     if project is not 'All':
