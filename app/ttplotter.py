@@ -1,4 +1,6 @@
 """Houses plot generation and updating logic."""
+from datetime import date
+
 import numpy as np
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource, HoverTool
@@ -7,6 +9,18 @@ from bokeh.models import ColumnDataSource, HoverTool
 def _hline(y_value, x_values):
     """Generates a horizontal line by repeating y_value."""
     return np.repeat(y_value, len(x_values))
+
+
+def _date_from_js(timestamp: int):
+    """Borrowed from Bokeh's Date.transform method.
+
+    After some poking around I discovered this works best with the values
+    we get from the JS frontend when the slider is dragged.
+    """
+    try:
+        return date.fromtimestamp(timestamp)
+    except ValueError:
+        return date.fromtimestamp(timestamp / 1000)
 
 
 def generate_plot(data):
@@ -73,7 +87,9 @@ def _update_mean(plot, new_x, new_y):
 
 def update(plot, tt_data, date_range, complexity_type, project, rolling_window):
     """Updates a plot from global tt_data."""
-    pkg_filter = (tt_data['Complexity'] == complexity_type)
+    pkg_filter = ((tt_data['Complexity'] == complexity_type) &
+                  (tt_data['x'] > _date_from_js(date_range[0])) &
+                  (tt_data['x'] < _date_from_js(date_range[1])))
     if project is not 'All':
         pkg_filter = pkg_filter & (tt_data['Project'] == project)
 
