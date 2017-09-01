@@ -2,12 +2,12 @@ from collections import namedtuple
 from datetime import datetime
 
 from bokeh.layouts import layout, widgetbox
-from bokeh.models.widgets import Slider, Select, DateRangeSlider
+from bokeh.models.widgets import Slider, Select, DateRangeSlider, Div
 from bokeh.io import curdoc
 
 from ttplotter import generate_plot, update
 from datawrangler import load_timetracking_data, tt_subset
-from assumptions import COMPLEXITY_TYPES
+from assumptions import COMPLEXITY_TYPES, assumption_html
 from dateranger import date_range_from_request
 
 DEFAULT_COMPLEXITY = "Basic"
@@ -40,9 +40,10 @@ for name, control in controls._asdict().items():
 
 sizing_mode = 'fixed'
 inputs = widgetbox(*controls, sizing_mode="stretch_both")
+assumption_div = Div(text=assumption_html())
 
 l = layout(
-    [[inputs, p]],
+    [[inputs, p, assumption_div]],
     # sizing_mode="stretch_both"
 )
 curdoc().add_root(l)
