@@ -63,4 +63,4 @@ l = layout(
     [assumption_div, p2]],
 )
 curdoc().add_root(l)
-curdoc().title = "Package stats"
+curdoc().title = "Packaging Performance"
