@@ -19,11 +19,13 @@ def _date_from_js(timestamp: int):
     After some poking around I discovered this works best with the values
     we get from the JS frontend when the slider is dragged.
     """
-    try:
-        return date.fromtimestamp(timestamp)
-    except ValueError:
-        return date.fromtimestamp(timestamp / 1000)
-
+    if isinstance(timestamp, int):
+        try:
+            return date.fromtimestamp(timestamp)
+        except ValueError:
+            return date.fromtimestamp(timestamp / 1000)
+    else:
+        return timestamp
 
 def generate_plot(data):
     """Create bokeh figure from some initial data."""

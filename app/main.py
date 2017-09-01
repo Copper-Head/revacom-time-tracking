@@ -20,7 +20,8 @@ def _convert(date: str, default: datetime.date) -> datetime.date:
 
 
 def _extract(request_arguments: dict, arg_name: str) -> str:
-    return request_arguments.get(arg_name, [])[0].decode()
+    value = request_arguments.get(arg_name, [])
+    return value[0].decode() if value else ""
 
 
 def _extract_start_end(request_arguments: dict) -> tuple:
