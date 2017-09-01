@@ -5,6 +5,8 @@ import numpy as np
 from bokeh.plotting import figure
 from bokeh.models import ColumnDataSource, HoverTool
 
+from datawrangler import DateRange, tt_subset
+
 
 def _hline(y_value, x_values):
     """Generates a horizontal line by repeating y_value."""
@@ -66,7 +68,7 @@ def generate_plot(data):
         legend='Planned Profit',
         line_width=2)
     # yapf:enable
-    plot.legend.click_policy="hide"
+    plot.legend.click_policy = "hide"
     return plot
 
 
@@ -87,9 +89,8 @@ def _update_mean(plot, new_x, new_y):
 
 def update(plot, tt_data, date_range, complexity_type, project, rolling_window):
     """Updates a plot from global tt_data."""
-    pkg_filter = ((tt_data['Complexity'] == complexity_type) &
-                  (tt_data['x'] > _date_from_js(date_range[0])) &
-                  (tt_data['x'] < _date_from_js(date_range[1])))
+    date_range = DateRange(_date_from_js(date_range[0]), _date_from_js(date_range[1]))
+    pkg_filter = tt_subset(tt_data, complexity_type, date_range)
     if project is not 'All':
         pkg_filter = pkg_filter & (tt_data['Project'] == project)
 

@@ -1,5 +1,9 @@
 """Handles data readin and preprocessing."""
+from collections import namedtuple
+
 import pandas as pd
+
+DateRange = namedtuple("DateRange", "start end")
 
 
 def pkg_profit(pkg_price, pkg_hours, wage):
@@ -38,3 +42,9 @@ def load_timetracking_data(path):
                                       tt_data['Complexity'].apply(lambda cpl: planned_times[cpl]),
                                       HOURLY_WAGE)
     return tt_data
+
+
+def tt_subset(data: pd.DataFrame, complexity_type: str, date_range: tuple):
+    """Most used filter to subset data."""
+    return ((data['Complexity'] == complexity_type) & (data['x'] > date_range.start) &
+            (data['x'] < date_range.end))
