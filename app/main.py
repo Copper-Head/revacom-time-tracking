@@ -1,5 +1,6 @@
 from collections import namedtuple
 from datetime import datetime
+from functools import partial
 
 from bokeh.layouts import layout, widgetbox
 from bokeh.models.widgets import Slider, Select, DateRangeSlider, Div
@@ -34,9 +35,11 @@ controls = Controls(
         title='Project ID', value="All", options=['All'] + list(tt_data['Project'].unique())),
     rolling_window=Slider(title='Rolling Mean Window', start=5, end=500, value=100, step=1))
 
-for name, control in controls._asdict().items():
-    control.on_change('value',
-                      lambda attr, old, new: update(p, tt_data, * [c.value for c in controls]))
+update_cb = partial(update, p, tt_data)
+for ctrl in controls:
+    # yapf: disable
+    ctrl.on_change('value', lambda attr, old, new: update_cb(*[c.value for c in controls]))
+    # yapf: disable
 
 sizing_mode = 'fixed'
 inputs = widgetbox(*controls, sizing_mode="stretch_both")
