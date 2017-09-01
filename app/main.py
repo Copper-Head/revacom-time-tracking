@@ -7,6 +7,7 @@ from bokeh.io import curdoc
 
 from ttplotter import generate_plot, update
 from datawrangler import load_timetracking_data, tt_subset, DateRange
+from assumptions import COMPLEXITY_TYPES
 
 DEFAULT_COMPLEXITY = "Basic"
 DATE_FORMAT = "%d/%m/%Y"
@@ -52,9 +53,7 @@ controls = Controls(
         value=date_range,
         name='date-ranger'),
     complexity_type=Select(
-        title='Package Complexity',
-        value=DEFAULT_COMPLEXITY,
-        options=["Basic", "Easy", "Medium", "Complex"]),
+        title='Package Complexity', value=DEFAULT_COMPLEXITY, options=COMPLEXITY_TYPES.value),
     project=Select(
         title='Project ID', value="All", options=['All'] + list(tt_data['Project'].unique())),
     rolling_window=Slider(title='Rolling Mean Window', start=5, end=500, value=100, step=1))

@@ -3,7 +3,7 @@ from collections import namedtuple
 
 import pandas as pd
 
-from assumptions import HOURLY_WAGE, PKG_PRICES, PLANNED_HOURS
+from assumptions import HOURLY_WAGE, PKG_PRICES, PLANNED_HOURS, COMPLEXITY_TYPES
 
 DateRange = namedtuple("DateRange", "start end")
 
@@ -19,11 +19,7 @@ def load_timetracking_data(path):
     """Loading the data"""
     # first column has to be dates!!
     tt_data = pd.read_csv(path, parse_dates=[0])
-    # There are about 3,5K (~10% of overall data) entries which we can't use
-    # Also there are 1364 entries where the complexity field is null
-    tt_data_filter = ((tt_data['Complexity'] != 'NotSpecified') &
-                      (tt_data['Complexity'] != 'Special') & (~(tt_data['Complexity'].isnull())))
-    tt_data = tt_data[tt_data_filter]
+    tt_data = tt_data[tt_data['Complexity'].isin(COMPLEXITY_TYPES.value)]
     tt_data = tt_data.drop_duplicates()
     tt_data = tt_data.sort_values('Date')
     tt_data = tt_data[RELEVANT_COLUMNS]
