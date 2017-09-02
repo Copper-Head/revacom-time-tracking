@@ -11,3 +11,7 @@ RUN conda install --quiet \
 
 VOLUME /data
 VOLUME /secrets
+
+ADD scraper.py scraper.py
+
+CMD ["python", "scraper.py"]

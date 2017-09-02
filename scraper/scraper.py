@@ -8,12 +8,7 @@ import json
 import requests
 from bs4 import BeautifulSoup
 
-logfile = 'scrape_log'
-logging.basicConfig(
-    filename=logfile,
-    filemode='w',
-    level=logging.DEBUG,
-    format="%(asctime)s -- %(levelname)s -- %(message)s")
+logging.basicConfig(format="%(asctime)s -- %(levelname)s -- %(message)s")
 
 ROOT_URL = "http://tt.revacom.com"
 LOGIN_URL = ROOT_URL + "/Home/Login"
@@ -27,7 +22,7 @@ LINK_DATE_FMT = "%Y-%m"
 DATE_FMT = "%Y/%m"
 CACHE_PATH = "/data/scrape-dates-cache"
 OUTPUT_FILE = "/data/time_tracking.csv"
-with open("/data/tt_credentials.json") as f:
+with open("/secrets/tt_credentials.json") as f:
     LOGIN_CREDENTIALS = json.load(f)
 
 
@@ -78,7 +73,8 @@ def generate_spans(span_cashe, start_date=None, end_date=None):
 
     for year in range(start_date.year, end_date.year + 1):
         n_months = 12 if year != end_date.year else end_date.month
-        for month in range(1, n_months + 1):
+        # we purposefully ignore this month because it's not finished yet
+        for month in range(1, n_months):
             dec = month == 12
             year2 = year if not dec else year + 1
             month2 = month + 1 if not dec else 1
