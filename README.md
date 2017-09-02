@@ -2,21 +2,22 @@
 
 
 ## Bokeh Server
-This displays the monthly stats for packages.
+This displays basic monthly performance stats for packages listed in Time Tracker.
+The code can be found in the `app` folder.
 
 ### Prerequisites
 
 - `docker` version 17.06+
 - `docker-compose` version 0.15+
+- some familiarity with these tools
 - `/srv/data` folder on your docker host
 
 ### Deployment
-
 For the first time, deploy with this command:
 ```
 docker-compose up -d
 ```
-Note that this will rebuild the image for our bokeh container and pull the images for nginx-proxy and letsencrypt.
+This will reference the `docker-compose.yaml` to determine which container images to build or pull and which volumes to create.
 
 When re-deploying, use this command:
 ```
@@ -26,7 +27,8 @@ You can leave out the `--build` flag if you didn't make any changes to the serve
 You can edit this configuration by simply changing the `docker-compose.yaml` file.
 
 ### Assumptions
-When generating the plots we made some assumptions about our data. You can find (and tweak) all of them in `app/assumptions.py`
+When generating the plots we made some assumptions about our data.
+You can find (and tweak) all of them in `app/assumptions.py`
 
 ## Running Scraper Job
 Trying to support both dockerized and non-dockerized setups proved to be trickier than expected,
