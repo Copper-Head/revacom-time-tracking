@@ -31,7 +31,7 @@ You can edit this configuration by simply changing the `docker-compose.yaml` fil
 When generating the plots we made some assumptions about our data.
 You can find (and tweak) all of them in `app/assumptions.py`
 
-## Running Scraper Job
+## The Scraper
 To build the docker container image, run this command:
 ```
 docker build -t time-tracking-scraper scraper
@@ -49,3 +49,14 @@ With this taken care of, feel free to run the container:
 docker run -v /srv/data:/data/ -v /srv/secrets:/secrets time-tracking-scraper
 ```
 This will make several requests to TT, scrape the response and place a CSV file in `/srv/data`.
+
+### As a Cronjob
+Here's an example crontab entry for running the job at 3 am every 1st of the month.
+```
+0 3 1 * * docker run -d -v /srv/data:/data/ -v /srv/secrets:/secrets time-tracking-scraper
+```
+
+### Caching
+So as not to pull old data unnecessarily the scraper caches report periods it has already requested.
+This cache is stored in a simple text file and which can be easily removed/renamed to invalidate it.
+Removing/renaming the output CSV file also busts the cache.
