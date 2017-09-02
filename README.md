@@ -10,7 +10,8 @@ The code can be found in the `app` folder.
 - `docker` version 17.06+
 - `docker-compose` version 0.15+
 - some familiarity with these tools
-- `/srv/data` folder on your docker host
+- `/srv/data` folder on your docker host, where the scraped data will be stored
+- `/srv/secrets` folder on your host, where the credentials to TT need to be placed
 
 ### Deployment
 For the first time, deploy with this command:
@@ -31,17 +32,20 @@ When generating the plots we made some assumptions about our data.
 You can find (and tweak) all of them in `app/assumptions.py`
 
 ## Running Scraper Job
-Trying to support both dockerized and non-dockerized setups proved to be trickier than expected,
-so for now this only runs in a docker container.
+To build the docker container image, run this command:
 ```
 docker build -t time-tracking-scraper scraper
 ```
-When you run the container you need to mount two volumes:
-
-- one in `/project` containing `TimeSheetData.ipynb` and `scraper.py` (the easiest is to just mount this repository)
-- one under `/data/` where the output will be saved
-
-Here's an example run command assuming there is an `/srv/data` directory on the host.
+Before you run this container, make sure to store your username and password for TT in a JSON file `tt_credentials.json` in the `/srv/secrets` folder.
+Here's an example of the expected format.
 ```
-docker run -v /srv/data:/data/ /project:$PWD time-tracking-scraper
+{
+  "username": "j.doe",
+  "password": "supercalifragilisticexpialidocious"
+}
 ```
+With this taken care of, feel free to run the container:
+```
+docker run -v /srv/data:/data/ -v /srv/secrets:/secrets time-tracking-scraper
+```
+This will make several requests to TT, scrape the response and place a CSV file in `/srv/data`.
