@@ -34,7 +34,7 @@ You can find (and tweak) all of them in `app/assumptions.py`
 Trying to support both dockerized and non-dockerized setups proved to be trickier than expected,
 so for now this only runs in a docker container.
 ```
-docker build . -t time-tracking-scraper
+docker build -t time-tracking-scraper scraper
 ```
 When you run the container you need to mount two volumes:
 
