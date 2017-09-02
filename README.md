@@ -2,8 +2,8 @@
 
 
 ## Bokeh Server
-This displays basic monthly performance stats for packages listed in Time Tracker.
-The code can be found in the `app` folder.
+Once you collect the data with the scraper, it's time to visualize it!
+The code for the server can be found in the `app` folder.
 
 ### Prerequisites
 
