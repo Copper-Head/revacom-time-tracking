@@ -1,4 +1,8 @@
-# Revacom Time Tracking
+# Revacom Packaging Performance
+This system consists of two components:
+
+- A script that scrapes data from TT (can be run as a cronjob).
+- A server that displays plots generated from the scraped data.
 
 
 ## Bokeh Server
