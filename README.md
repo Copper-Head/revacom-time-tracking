@@ -62,6 +62,10 @@ docker-compose up -d --force-recreate --build
 You can leave out the `--build` flag if you didn't make any changes to the server code and are just deploying a new docker container configuration.
 You can edit this configuration by simply changing the `docker-compose.yaml` file.
 
+**Note**
+
+If for some reason the CSV file with the data has to be recreated, you will need to re-deploy the app!
+
 ### Assumptions
 When generating the plots we made some assumptions about our data.
 You can find (and tweak) all of them in `app/assumptions.py`
