@@ -4,6 +4,8 @@ import logging
 from datetime import date, datetime
 import os
 import json
+from calendar import Calendar
+from collections import namedtuple
 
 import requests
 from bs4 import BeautifulSoup
@@ -13,17 +15,46 @@ logging.basicConfig(format="%(asctime)s -- %(levelname)s -- %(message)s")
 ROOT_URL = "http://tt.revacom.com"
 LOGIN_URL = ROOT_URL + "/Home/Login"
 LINK_TPL = (ROOT_URL + "/GetAssignment/PackagingStatistic?group_type=proj&proj=&isWeek=false"
-            "&from={start_ym}-01&to={end_ym}-01&account=132&date_type=month&all_proj=true"
+            "&from={0}&to={1}&account=132&date_type=month&all_proj=true"
             "&fromweek=&toweek=&refresh_report=false")
+CACHE_TPL = "{0}\t{1}"
 # Less conventional (but URL-friedly) date format
 LINK_DATE_FMT = "%Y-%m"
 # Date format used for chache entries and saved to CSV.
 # It's automatically parsed by pandas.
-DATE_FMT = "%Y/%m"
+DATE_FMT = "%Y-%m-%d"
 CACHE_PATH = "/data/scrape-dates-cache"
 OUTPUT_FILE = "/data/time_tracking.csv"
-with open("/secrets/tt_credentials.json") as f:
-    LOGIN_CREDENTIALS = json.load(f)
+
+Span = namedtuple("Span", "start end")
+
+
+def week_to_span(calendar_week: list):
+    return Span(calendar_week[0], calendar_week[-1])
+
+
+def span_to_str(span: Span):
+    return (span.start.strftime(DATE_FMT), span.end.strftime(DATE_FMT))
+
+
+def strings_to_span(start: str, end: str):
+    return Span(datetime.strptime(start, DATE_FMT).date(), datetime.strptime(end, DATE_FMT).date())
+
+
+def insert_span_str(template: str, span: Span):
+    return template.format(*span_to_str(span))
+
+
+def span_to_url(span: Span):
+    return insert_span_str(LINK_TPL, span)
+
+
+def span_to_cache_entry(span: Span):
+    return insert_span_str(CACHE_TPL, span)
+
+
+def cache_entry_to_span(line: str):
+    return strings_to_span(*line.split())
 
 
 def cache_file():
@@ -48,20 +79,8 @@ def instantiate_span_cache():
         return set()
 
     with open(CACHE_PATH) as cache_f:
-        return set(_cache_entry_to_span_tuple(line.strip()) for line in cache_f)
+        return set(cache_entry_to_span(line) for line in cache_f)
 
-
-def _cache_entry_to_span_tuple(cache_entry):
-    """Turn cache date span entry into tuple of start and end date."""
-    start, end = cache_entry.split('-')
-    start_date = datetime.strptime(start, DATE_FMT).date()
-    end_date = datetime.strptime(end, DATE_FMT).date()
-    return start_date, end_date
-
-
-def _span_to_cache_entry(start_date, end_date):
-    """Turn start and end date into string to save in the cache file."""
-    return "{0}-{1}\n".format(start_date.strftime(DATE_FMT), end_date.strftime(DATE_FMT))
 
 
 def generate_spans(span_cashe, start_date=None, end_date=None):
@@ -79,18 +98,9 @@ def generate_spans(span_cashe, start_date=None, end_date=None):
             year2 = year if not dec else year + 1
             month2 = month + 1 if not dec else 1
 
-            report_span = (date(year, month, 1), date(year2, month2, 1))
+            report_span = Span(date(year, month, 1), date(year2, month2, 1))
             if report_span not in span_cashe:
                 yield report_span
-
-
-def span_to_url(start_date, end_date):
-    """Interpolates start and end dates into URL."""
-    # yapf: disable
-    return LINK_TPL.format(
-        start_ym=start_date.strftime(LINK_DATE_FMT),
-        end_ym=end_date.strftime(LINK_DATE_FMT))
-    # yapf: enable
 
 
 def request_report(report_link: str, login_payload: dict):
@@ -168,19 +178,19 @@ def scrape_to_csv():
         # We aslo want to reset the cache
         clear_cache()
 
-    for start_date, end_date in generate_spans(instantiate_span_cache()):
+    for timespan in generate_spans(instantiate_span_cache()):
         table_rows = extract_table(
-            request_report(span_to_url(start_date, end_date), LOGIN_CREDENTIALS))
+            request_report(span_to_url(timespan), LOGIN_CREDENTIALS))
 
         table_rows = map(split_jira_key, table_rows)
-        rows_with_date = [[start_date.strftime(DATE_FMT)] + row for row in table_rows]
+        rows_with_date = [[timespan.start.strftime(DATE_FMT)] + row for row in table_rows]
 
         with open(OUTPUT_FILE, 'a', encoding='utf-8') as outf:
             csvfile = csv.writer(outf)
             csvfile.writerows(rows_with_date)
 
         with cache_file() as cache_f:
-            cache_f.write(_span_to_cache_entry(start_date, end_date))
+            cache_f.write(span_to_cache_entry(timespan))
 
 
 if __name__ == '__main__':
