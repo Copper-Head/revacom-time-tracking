@@ -19,8 +19,9 @@ def load_timetracking_data(path):
     # first column has to be dates!!
     tt_data = pd.read_csv(path, parse_dates=[0])
     tt_data = tt_data[tt_data['Complexity'].isin(COMPLEXITY_TYPES.value)]
-    tt_data = tt_data.drop_duplicates()
-    tt_data = tt_data.sort_values('Date')
+    # We noticed duplicate entries that only differed in the date they were entered.
+    # We decided to remove such entries.
+    tt_data = tt_data.drop_duplicates(subset=(set(tt_data) - set(['Date'])))
     tt_data = tt_data[RELEVANT_COLUMNS]
     # Rename some columns for easier plotting
     tt_data = tt_data.rename(columns={'Date': 'x', 'Package Number': 'Pkg_ID'})
