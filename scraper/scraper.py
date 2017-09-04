@@ -6,6 +6,8 @@ import os
 import json
 from calendar import Calendar
 from collections import namedtuple
+from itertools import chain, takewhile
+from functools import partial
 
 import requests
 from bs4 import BeautifulSoup
@@ -82,25 +84,29 @@ def instantiate_span_cache():
         return set(cache_entry_to_span(line) for line in cache_f)
 
 
+def all_weeks(start_date, end_date):
+    """Chain together calendar weeks from start date to end date."""
+    # Our calendar's first/last week day is a Sunday!
+    cal = Calendar(firstweekday=6)
+    return chain.from_iterable(
+        chain.from_iterable(
+            chain.from_iterable(
+                cal.yeardatescalendar(year) for year in range(start_date.year, end_date.year + 1))))
 
-def generate_spans(span_cashe, start_date=None, end_date=None):
-    """Lazily generates spans of one month from start_date to end_date."""
-    if start_date is None:
-        start_date = date(2012, 1, 1)
-    if end_date is None:
-        end_date = date.today()
 
-    for year in range(start_date.year, end_date.year + 1):
-        n_months = 12 if year != end_date.year else end_date.month
-        # we purposefully ignore this month because it's not finished yet
-        for month in range(1, n_months):
-            dec = month == 12
-            year2 = year if not dec else year + 1
-            month2 = month + 1 if not dec else 1
+def week_is_before(some_date: date, week):
+    """Check if last day of week happened before some date."""
+    return week[-1] < some_date
 
-            report_span = Span(date(year, month, 1), date(year2, month2, 1))
-            if report_span not in span_cashe:
-                yield report_span
+
+def generate_spans(cache, start_date=None, end_date=None):
+    """Lazily generates spans of one week each from start_date to end_date."""
+    start_date = date(2012, 1, 1) if start_date is None else start_date
+    end_date = date.today() if end_date is None else end_date
+
+    up_to_today = takewhile(partial(week_is_before, end_date), all_weeks(start_date, end_date))
+    return filter(lambda span: span not in cache, map(week_to_span, up_to_today))
+
 
 
 def request_report(report_link: str, login_payload: dict):
