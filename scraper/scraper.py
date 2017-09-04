@@ -179,7 +179,8 @@ def scrape_to_csv():
             csvfile.writerow(header_row)
         clear_cache()
 
-    for timespan in generate_spans(instantiate_span_cache()):
+    cache = instantiate_span_cache()
+    for timespan in generate_spans(cache):
         table_rows = extract_table(request_report(span_to_url(timespan), LOGIN_CREDENTIALS))
 
         table_rows = map(split_jira_key, table_rows)
@@ -189,6 +190,7 @@ def scrape_to_csv():
             csvfile = csv.writer(outf)
             csvfile.writerows(rows_with_date)
 
+        cache.add(timespan)
         with cache_file() as cache_f:
             cache_f.write(span_to_cache_entry(timespan))
 
