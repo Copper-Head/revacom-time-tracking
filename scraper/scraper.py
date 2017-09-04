@@ -16,15 +16,14 @@ logging.basicConfig(format="%(asctime)s -- %(levelname)s -- %(message)s")
 
 ROOT_URL = "http://tt.revacom.com"
 LOGIN_URL = ROOT_URL + "/Home/Login"
+
 LINK_TPL = (ROOT_URL + "/GetAssignment/PackagingStatistic?group_type=proj&proj=&isWeek=false"
             "&from={0}&to={1}&account=132&date_type=month&all_proj=true"
             "&fromweek=&toweek=&refresh_report=false")
 CACHE_TPL = "{0}\t{1}"
-# Less conventional (but URL-friedly) date format
-LINK_DATE_FMT = "%Y-%m"
-# Date format used for chache entries and saved to CSV.
-# It's automatically parsed by pandas.
+
 DATE_FMT = "%Y-%m-%d"
+
 CACHE_PATH = "/data/scrape-dates-cache"
 OUTPUT_FILE = "/data/time_tracking.csv"
 
@@ -61,9 +60,7 @@ def cache_entry_to_span(line: str):
 
 def cache_file():
     """Opens file in append or write mode depending on whether it's already present."""
-    mode = 'w'
-    if os.path.isfile(CACHE_PATH):
-        mode = 'a'
+    mode = 'a' if os.path.isfile(CACHE_PATH) else 'w'
     return open(CACHE_PATH, mode)
 
 
@@ -108,7 +105,6 @@ def generate_spans(cache, start_date=None, end_date=None):
     return filter(lambda span: span not in cache, map(week_to_span, up_to_today))
 
 
-
 def request_report(report_link: str, login_payload: dict):
     """Login and request a report.
 
@@ -117,7 +113,7 @@ def request_report(report_link: str, login_payload: dict):
     """
     with requests.Session() as session:
         session.post(LOGIN_URL, data=login_payload)
-        logging.debug("Done authenticating")
+        logging.debug("Done authenticating, requesting this URL: {}".format(report_link))
         # wait forever with timeout=None
         return session.get(report_link, timeout=None)
 
@@ -181,12 +177,10 @@ def scrape_to_csv():
         with open(OUTPUT_FILE, 'w') as outfile:
             csvfile = csv.writer(outfile)
             csvfile.writerow(header_row)
-        # We aslo want to reset the cache
         clear_cache()
 
     for timespan in generate_spans(instantiate_span_cache()):
-        table_rows = extract_table(
-            request_report(span_to_url(timespan), LOGIN_CREDENTIALS))
+        table_rows = extract_table(request_report(span_to_url(timespan), LOGIN_CREDENTIALS))
 
         table_rows = map(split_jira_key, table_rows)
         rows_with_date = [[timespan.start.strftime(DATE_FMT)] + row for row in table_rows]
