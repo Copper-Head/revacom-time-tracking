@@ -131,6 +131,8 @@ def scrape_to_csv():
 
     To avoid requesting and processing entries twice, caches them.
     """
+    with open("/secrets/tt_credentials.json") as f:
+        LOGIN_CREDENTIALS = json.load(f)
     # If the output file doesn't exist, we should recreate it from scratch.
     if not os.path.isfile(OUTPUT_FILE):
         # Here's the code for extracting header:
