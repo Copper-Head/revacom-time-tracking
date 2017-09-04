@@ -20,7 +20,7 @@ LOGIN_URL = ROOT_URL + "/Home/Login"
 LINK_TPL = (ROOT_URL + "/GetAssignment/PackagingStatistic?group_type=proj&proj=&isWeek=false"
             "&from={0}&to={1}&account=132&date_type=month&all_proj=true"
             "&fromweek=&toweek=&refresh_report=false")
-CACHE_TPL = "{0}\t{1}"
+CACHE_TPL = "{0}\t{1}\n"
 
 DATE_FMT = "%Y-%m-%d"
 
