@@ -40,5 +40,7 @@ def load_timetracking_data(path):
 
 def tt_subset(data: pd.DataFrame, complexity_type: str, date_range: DateRange):
     """Most used filter to subset data."""
+    if complexity_type == 'All':
+        return ((data['x'] > date_range.start) & (data['x'] < date_range.end))
     return ((data['Complexity'] == complexity_type) & (data['x'] > date_range.start) &
             (data['x'] < date_range.end))

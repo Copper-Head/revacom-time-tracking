@@ -11,7 +11,7 @@ from datawrangler import load_timetracking_data, tt_subset, COST_COL, PROFIT_COL
 from assumptions import COMPLEXITY_TYPES, assumption_html
 from dateranger import date_range_from_request
 
-DEFAULT_COMPLEXITY = "Basic"
+DEFAULT_COMPLEXITY = "All"
 
 tt_data = load_timetracking_data('/data/time_tracking.csv')
 date_range = date_range_from_request(tt_data['x'].min(), tt_data['x'].max())
@@ -31,9 +31,13 @@ controls = Controls(
         value=date_range,
         name='date-ranger'),
     complexity_type=Select(
-        title='Package Complexity', value=DEFAULT_COMPLEXITY, options=COMPLEXITY_TYPES.value),
+        title='Package Complexity',
+        value=DEFAULT_COMPLEXITY,
+        options=['All'] + COMPLEXITY_TYPES.value),
     project=Select(
-        title='Project ID', value="All", options=['All'] + list(tt_data['Project'].unique())),
+        title='Project ID',
+        value="All",
+        options=['All'] + list(sorted(tt_data['Project'].unique()))),
     rolling_window=Slider(title='Rolling Mean Window', start=5, end=500, value=100, step=1))
 
 

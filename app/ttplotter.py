@@ -51,7 +51,7 @@ def generate_plot(data, metric_name):
         line_width=2)
     plot.line(
         xs,
-        data[planned_col_name(metric_name)],
+        _hline(np.nan, xs),
         line_color='green',
         name='planned',
         legend='Planned {}'.format(Metric_Name),
@@ -88,6 +88,10 @@ def update(plot, tt_data, date_range, complexity_type, project, rolling_window):
     new_tt = this_complexity['y']
 
     plot.select_one("datapoints").data_source.data = ColumnDataSource.from_df(this_complexity)
-    _update_line(plot, "planned", new_x, this_complexity[planned_col_name(metric_name)])
+    if complexity_type == 'All':
+        planned_measure = _hline(np.nan, new_x)
+    else:
+        planned_measure = this_complexity[planned_col_name(metric_name)]
+    _update_line(plot, "planned", new_x, planned_measure)
     _update_mean(plot, new_x, new_tt)
     _update_rolling_window(plot, new_x, new_tt, rolling_window)
