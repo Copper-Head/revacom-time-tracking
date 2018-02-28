@@ -9,34 +9,33 @@ This system consists of two components:
 - [`docker`](https://docs.docker.com/engine/installation/) version 17.06+
 - [`docker-compose`](https://docs.docker.com/compose/install/) version 0.15+
 - some familiarity with these tools
-- `/srv/data` folder on your docker host, where the scraped data will be stored
-- `/srv/secrets` folder on your host, where the credentials to TT need to be placed
+- Ubuntu host OS
+- `/srv/data` folder, where the scraped data will be stored
+- `/srv/secrets` folder on your host, where you need to place the credentials to Time Tracker
 
-
-## The Scraper
-To build the docker container image, run this command:
-```
-docker build -t time-tracking-scraper scraper
-```
-Before you run this container, make sure to store your username and password for TT in a JSON file `tt_credentials.json` in the `/srv/secrets` folder.
-Here's an example of the expected format.
+Here's an example of the expected format for the credentials.
 ```
 {
   "username": "j.doe",
   "password": "supercalifragilisticexpialidocious"
 }
 ```
-With this taken care of, feel free to run the container:
+## Setup from scratch
+Run:
 ```
-docker run -v /srv/data:/data/ -v /srv/secrets:/secrets time-tracking-scraper
+./from_scratch.sh
+```
+It will
+- install `docker` and `docker-compose`
+- scrape the TT website
+- start the bokeh server
+
+## The Scraper
+To scrape some data from the TT website again, run this command:
+```
+./scraper.sh
 ```
 This will make several requests to TT, scrape the response and place a CSV file in `/srv/data`.
-
-### As a Cronjob
-Here's an example crontab entry for running the job at 3 am every 1st of the month.
-```
-0 3 1 * * docker run -d -v /srv/data:/data/ -v /srv/secrets:/secrets time-tracking-scraper
-```
 
 ### Caching
 So as not to pull old data unnecessarily the scraper caches the date spans for which it already requested a report.
@@ -48,13 +47,11 @@ Removing/renaming the output CSV file also busts the cache.
 Once you collect the data with the scraper, it's time to visualize it!
 The code for the server can be found in the `app` folder.
 
-### Deployment
+### Running the Server
 For the first time, deploy with this command:
 ```
 docker-compose up -d
 ```
-This will reference the `docker-compose.yaml` to determine which container images to build or pull and which volumes to create.
-
 When re-deploying, use this command:
 ```
 docker-compose up -d --force-recreate --build
